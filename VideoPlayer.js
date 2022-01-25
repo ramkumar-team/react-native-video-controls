@@ -12,6 +12,7 @@ import {
   Image,
   View,
   Text,
+  TouchableOpacity
 } from 'react-native';
 import padStart from 'lodash/padStart';
 
@@ -31,8 +32,6 @@ export default class VideoPlayer extends Component {
     volume: 1,
     title: '',
     rate: 1,
-    showTimeRemaining: true,
-    showHours: false,
   };
 
   constructor(props) {
@@ -53,8 +52,7 @@ export default class VideoPlayer extends Component {
 
       isFullscreen:
         this.props.isFullScreen || this.props.resizeMode === 'cover' || false,
-      showTimeRemaining: this.props.showTimeRemaining,
-      showHours: this.props.showHours,
+      showTimeRemaining: true,
       volumeTrackWidth: 0,
       volumeFillWidth: 0,
       seekerFillWidth: 0,
@@ -486,7 +484,7 @@ export default class VideoPlayer extends Component {
     state.isFullscreen = !state.isFullscreen;
 
     if (this.props.toggleResizeModeOnFullscreen) {
-      state.resizeMode = state.isFullscreen === true ? 'cover' : 'contain';
+      // state.resizeMode = state.isFullscreen === true ? 'cover' : 'contain';
     }
 
     if (state.isFullscreen) {
@@ -565,22 +563,10 @@ export default class VideoPlayer extends Component {
     const symbol = this.state.showRemainingTime ? '-' : '';
     time = Math.min(Math.max(time, 0), this.state.duration);
 
-    if (!this.state.showHours) {
-      const formattedMinutes = padStart(Math.floor(time / 60).toFixed(0), 2, 0);
-      const formattedSeconds = padStart(Math.floor(time % 60).toFixed(0), 2, 0);
-
-      return `${symbol}${formattedMinutes}:${formattedSeconds}`;
-    }
-
-    const formattedHours = padStart(Math.floor(time / 3600).toFixed(0), 2, 0);
-    const formattedMinutes = padStart(
-      (Math.floor(time / 60) % 60).toFixed(0),
-      2,
-      0,
-    );
+    const formattedMinutes = padStart(Math.floor(time / 60).toFixed(0), 2, 0);
     const formattedSeconds = padStart(Math.floor(time % 60).toFixed(0), 2, 0);
 
-    return `${symbol}${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+    return `${symbol}${formattedMinutes}:${formattedSeconds}`;
   }
 
   /**
@@ -990,8 +976,8 @@ export default class VideoPlayer extends Component {
   renderBack() {
     return this.renderControl(
       <Image
-        source={require('./assets/img/back.png')}
-        style={styles.controls.back}
+        source={require('./assets/img/close1.png')}
+        style={[styles.controls.back,{tintColor:"#fff",width:16,height:16}]}
       />,
       this.events.onBack,
       styles.controls.back,
@@ -1060,6 +1046,26 @@ export default class VideoPlayer extends Component {
             marginBottom: this.animations.bottomControl.marginBottom,
           },
         ]}>
+       {!this.props.plainVideo && <TouchableOpacity
+          onPress={() => {
+            this.props.onBack()
+            this.props.openVideo()
+          }}
+          style={{
+          alignSelf: 'flex-end',
+          marginRight: 20,
+          marginBottom: this.state.isFullscreen ? 10 : -7, }}
+        >
+          <Image
+            source={require('./assets/img/fb-watch.png')}
+            style={[
+              {
+                width: this.state.isFullscreen ? 45 : 35,
+                height: this.state.isFullscreen ? 45 : 35,
+              },
+            ]}
+          />
+        </TouchableOpacity>}
         <ImageBackground
           source={require('./assets/img/bottom-vignette.png')}
           style={[styles.controls.column]}
@@ -1082,11 +1088,11 @@ export default class VideoPlayer extends Component {
   renderSeekbar() {
     return (
       <View
-        style={styles.seekbar.container}
+        style={[styles.seekbar.container,{}]}
         collapsable={false}
         {...this.player.seekPanResponder.panHandlers}>
         <View
-          style={styles.seekbar.track}
+          style={[styles.seekbar.track,{top: this.state.isFullscreen? 14:25,}]}
           onLayout={event =>
             (this.player.seekerWidth = event.nativeEvent.layout.width)
           }
@@ -1108,7 +1114,8 @@ export default class VideoPlayer extends Component {
           <View
             style={[
               styles.seekbar.circle,
-              {backgroundColor: this.props.seekColor || '#FFF'},
+              {backgroundColor: this.props.seekColor || '#FFF',
+              top: this.state.isFullscreen? 8:8+11},
             ]}
             pointerEvents={'none'}
           />
